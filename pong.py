@@ -9,8 +9,9 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 
 # Basic parameters of the screen
-#WIDTH, HEIGHT = 1920, 1080
-WIDTH, HEIGHT = 1450, 850
+WIDTH, HEIGHT = 1080, 1920
+# laptop Dev size:
+#WIDTH, HEIGHT = 400, 850
 #screen = pygame.display.set_mode((0, 0), (pygame.FULLSCREEN | pygame.RESIZABLE))
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pong")
@@ -35,15 +36,15 @@ class Striker:
     def display(self):
         self.geek = pygame.draw.rect(screen, self.color, self.geekRect)
 
-    def update(self, yFac):
-        self.posy = self.posy + self.speed*yFac
+    def update(self, xFac):
+        self.posx = self.posx + self.speed*xFac
 
         # Restricting the striker to be below the top surface of the screen
-        if self.posy <= 0:
-            self.posy = 0
+        if self.posx <= 0:
+            self.posx = 0
         # Restricting the striker to be above the bottom surface of the screen
-        elif self.posy + self.height >= HEIGHT:
-            self.posy = HEIGHT-self.height
+        elif self.posx + self.width >= WIDTH:
+            self.posx = WIDTH-self.width
 
         # Updating the rect with the new values
         self.geekRect = (self.posx, self.posy, self.width, self.height)
@@ -81,31 +82,35 @@ class Ball:
     def update(self):
         self.posx += self.speed*self.xFac
         self.posy += self.speed*self.yFac
+        #print(f"Ball {self.posx}, {self.posy}")
 
-        # If the ball hits the top or bottom surfaces, 
+        # If the ball hits the left or right surfaces, 
         # then the sign of yFac is changed and 
         # it results in a reflection
-        if self.posy <= 0 or self.posy >= HEIGHT:
-            self.yFac *= -1
+        if self.posx <= 0 or self.posx >= WIDTH:
+            self.xFac *= -1
+        # if self.posy <= 0 or self.posy >= HEIGHT:
+        #     self.yFac *= -1
 
-        if self.posx <= 0 and self.firstTime:
+        if self.posy <= 0 and self.firstTime:
             self.firstTime = 0
             return 1
-        elif self.posx >= WIDTH and self.firstTime:
+        elif self.posy >= HEIGHT and self.firstTime:
             self.firstTime = 0
             return -1
         else:
             return 0
+        #return 0
 
     def reset(self):
         self.posx = WIDTH//2
         self.posy = HEIGHT//2
-        self.xFac *= -1
+        self.yFac *= -1
         self.firstTime = 1
 
-    # Used to reflect the ball along the X-axis
+    # Used to reflect the ball along the Y-axis
     def hit(self):
-        self.xFac *= -1
+        self.yFac *= -1
 
     def getRect(self):
         return self.ball
@@ -117,15 +122,15 @@ def main():
     running = True
 
     # Defining the objects
-    geek1 = Striker(20, 0, 10, 100, 10, GREEN)
-    geek2 = Striker(WIDTH-30, 0, 10, 100, 10, GREEN)
+    geek1 = Striker(20, 40, 100, 10, 10, GREEN)
+    geek2 = Striker(20, HEIGHT-30, 100, 10, 10, GREEN)
     ball = Ball(WIDTH//2, HEIGHT//2, 7, 7, WHITE)
 
     listOfGeeks = [geek1, geek2]
 
     # Initial parameters of the players
     geek1Score, geek2Score = 0, 0
-    geek1YFac, geek2YFac = 0, 0
+    geek1XFac, geek2XFac = 0, 0
 
     joysticks = {}
 
@@ -146,35 +151,35 @@ def main():
                 del joysticks[event.instance_id]
                 print(f"Joystick {event.instance_id} disconnected")
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    geek2YFac = -1
-                if event.key == pygame.K_DOWN:
-                    geek2YFac = 1
-                if event.key == pygame.K_w:
-                    geek1YFac = -1
+                if event.key == pygame.K_RIGHT:
+                    geek2XFac = 1
+                if event.key == pygame.K_LEFT:
+                    geek2XFac = -1
+                if event.key == pygame.K_d:
+                    geek1XFac = 1
                 if event.key == pygame.K_s:
-                    geek1YFac = 1
+                    geek1XFac = -1
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                    geek2YFac = 0
-                if event.key == pygame.K_w or event.key == pygame.K_s:
-                    geek1YFac = 0
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
+                    geek2XFac = 0
+                if event.key == pygame.K_d or event.key == pygame.K_s:
+                    geek1XFac = 0
         
         # Always read joystick if present, not event
         for index, joystick in enumerate(joysticks.values()):
             axis = joystick.get_axis(1) # left/ right
             #print(f"Axis value: {axis:>6.3f}")
             new_value = 0
-            if axis > 0.0:
+            if axis > 0.01:
                 new_value = 1
-            elif axis < 0.0:
+            elif axis < -0.01:
                 new_value = -1
             else:
                 new_value = 0
             if index == 0:
-                geek1YFac = new_value
+                geek1XFac = new_value
             elif index == 1:
-                geek2YFac = new_value
+                geek2XFac = new_value
 
         # Collision detection
         for geek in listOfGeeks:
@@ -182,8 +187,8 @@ def main():
                 ball.hit()
 
         # Updating the objects
-        geek1.update(geek1YFac)
-        geek2.update(geek2YFac)
+        geek1.update(geek1XFac)
+        geek2.update(geek2XFac)
         point = ball.update()
 
         # -1 -> Geek_1 has scored
