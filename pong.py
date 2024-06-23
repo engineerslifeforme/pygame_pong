@@ -122,9 +122,9 @@ def main():
     running = True
 
     # Defining the objects
-    geek1 = Striker(20, 40, 100, 10, 10, GREEN)
-    geek2 = Striker(20, HEIGHT-30, 100, 10, 10, GREEN)
-    ball = Ball(WIDTH//2, HEIGHT//2, 7, 7, WHITE)
+    geek1 = Striker(20, 40, 100, 20, 15, GREEN)
+    geek2 = Striker(20, HEIGHT-30, 100, 20, 15, GREEN)
+    ball = Ball(WIDTH//2, HEIGHT//2, 7, 9, WHITE)
 
     listOfGeeks = [geek1, geek2]
 
@@ -167,7 +167,7 @@ def main():
         
         # Always read joystick if present, not event
         for index, joystick in enumerate(joysticks.values()):
-            axis = joystick.get_axis(1) # left/ right
+            axis = joystick.get_axis(0) # left/ right
             #print(f"Axis value: {axis:>6.3f}")
             new_value = 0
             if axis > 0.01:
@@ -177,9 +177,9 @@ def main():
             else:
                 new_value = 0
             if index == 0:
-                geek1XFac = new_value
-            elif index == 1:
                 geek2XFac = new_value
+            elif index == 1:
+                geek1XFac = -1 * new_value
 
         # Collision detection
         for geek in listOfGeeks:
